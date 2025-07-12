@@ -1,0 +1,10 @@
+<objects>
+  <object Name="CyberneticWedgeTraderNPC" Inherits="BaseMerchant">
+    <part Name="Description" Long="A cybernetic trader in a small tent..." />
+    <part Name="Render" Tile="NPCs/Trader.png" ColorString="&amp;W" />
+    <part Name="CyberneticTrader" />
+    <part Name="Conversation" Conversation="CyberneticTrader" />
+    <tag Name="UniqueNPC" Value="true" />
+    <tag Name="NoRandomEquipment" Value="true" />
+  </object>
+</objects>

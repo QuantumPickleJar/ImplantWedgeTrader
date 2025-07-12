@@ -1,0 +1,12 @@
+{
+  "title": "Cybernetic Wedge Trader",
+  "description": "Adds a trader to the Six Day Stilt who converts unique cybernetic implants into credit wedges.",
+  "author": "QuantumPickleJar",
+  "version": "1.0.0",
+  "loadPriority": 5000,
+  "dependencies": [],
+  "scripts": [
+    "Objects/Parts/CyberneticTraderPart.cs",
+    "Zones/AddCyberneticTrader.cs"
+  ]
+}

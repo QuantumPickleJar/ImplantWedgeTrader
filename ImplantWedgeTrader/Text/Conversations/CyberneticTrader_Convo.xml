@@ -1,0 +1,20 @@
+<Conversations>
+  <Conversation Name="CyberneticTrader">
+    <Line Text="Hey there, you looking to offload some implants?">
+      <Option Text="I have a cybernetic implant for trade.">
+        <SetLocal Variable="traded" Value="true"/>
+        <Response Text="Let me take a look…"/>
+      </Option>
+      <Option Text="Not right now.">
+        <Response Text="Suit yourself. Come back if you change your mind."/>
+      </Option>
+    </Line>
+    <Conditional Variable="traded" Value="true">
+      <Line Text="Here—your wedge chips. Thanks for doing business.">
+        <Option Text="Thanks.">
+          <Response Text="Stay safe out there."/>
+        </Option>
+      </Line>
+    </Conditional>
+  </Conversation>
+</Conversations>

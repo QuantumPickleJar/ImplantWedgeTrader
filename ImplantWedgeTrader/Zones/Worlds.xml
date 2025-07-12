@@ -1,0 +1,9 @@
+<worlds>
+  <world Name="JoppaWorld" Load="Merge">
+    <cell ApplyTo="Stiltgrounds" Load="Merge">
+      <zone Name="six day stilt trader" ProperName="false">
+        <map FileName="SDS_Trader.rpm" />
+      </zone>
+    </cell>
+  </world>
+</worlds>
