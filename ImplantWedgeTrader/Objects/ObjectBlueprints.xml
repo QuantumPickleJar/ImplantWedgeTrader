@@ -1,10 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <objects>
-  <object Name="CyberneticWedgeTraderNPC" Inherits="BaseMerchant">
-    <part Name="Description" Long="A cybernetic trader in a small tent..." />
-    <part Name="Render" Tile="NPCs/Trader.png" ColorString="&amp;W" />
+  <object Name="CyberneticWedgeTraderNPC" Inherits="BaseHumanoid">
+    <part Name="Render" DisplayName="cybernetic wedge trader" ColorString="&amp;C" DetailColor="M" />
+    <part Name="Description" Short="A cybernetic implant trader who deals in credit wedges. Their body shows signs of extensive augmentation, and their eyes gleam with artificial intelligence." />
+    <part Name="Physics" Category="Creature" Weight="160" />
+    <part Name="Body" Type="Humanoid" />
+    <part Name="Brain" Hostile="false" Factions="Merchants" />
+    <part Name="Stats" Strength="18" Agility="16" Toughness="18" Intelligence="20" Willpower="16" Ego="18" />
+    <part Name="Level" Level="15" />
+    <part Name="Inventory" />
+    <part Name="Trade" />
     <part Name="CyberneticTrader" />
-    <part Name="Conversation" Conversation="CyberneticTrader" />
-    <tag Name="UniqueNPC" Value="true" />
-    <tag Name="NoRandomEquipment" Value="true" />
+    <part Name="ConversationScript" ConversationID="CyberneticTrader" />
+    
+    <inventoryobject Blueprint="Cloth Robe" Number="1" />
+    <inventoryobject Blueprint="Boots" Number="1" />
+    
+    <tag Name="Merchant" />
+    <tag Name="Humanoid" />
+    <tag Name="Creature" />
   </object>
 </objects>

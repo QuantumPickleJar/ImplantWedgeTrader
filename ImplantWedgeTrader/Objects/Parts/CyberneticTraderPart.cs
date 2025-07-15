@@ -6,6 +6,7 @@ using XRL.World;
 using XRL.World.Parts;
 using XRL.UI;
 using XRL.Messages;
+using XRL.World.Conversations;
 using QudGO = XRL.World.GameObject;
 using QudEvent = XRL.World.Event;
 
@@ -19,8 +20,7 @@ namespace GrantCyberneticWedge
 
         public static readonly Dictionary<string, int> TierValues = new()
         {
-            {"Low", 1}, {"Mid", 2}, {"High", 3}
-        };
+            {"Low", 1}, {"Mid", 2}, {"High", 3}        };
 
         public override bool FireEvent(QudEvent E)
         {
@@ -30,6 +30,11 @@ namespace GrantCyberneticWedge
             }
             else if (E.ID == "PerformInteraction" &&
                      E.GetParameter<string>("Option") == "Trade Implants")
+            {
+                DoTrade();
+                return true;
+            }
+            else if (E.ID == "ConversationAction" && E.GetStringParameter("Action") == "DoTrade")
             {
                 DoTrade();
                 return true;
@@ -103,9 +108,7 @@ namespace GrantCyberneticWedge
             if (complexity >= 6) return "High";
             if (complexity >= 3) return "Mid";
             return "Low";
-        }
-
-        private void AwardChips(int chips)
+        }        private void AwardChips(int chips)
         {
             var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
             if (chips > 1)

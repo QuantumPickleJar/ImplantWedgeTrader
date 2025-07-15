@@ -1,20 +1,14 @@
-<Conversations>
-  <Conversation Name="CyberneticTrader">
-    <Line Text="Hey there, you looking to offload some implants?">
-      <Option Text="I have a cybernetic implant for trade.">
-        <SetLocal Variable="traded" Value="true"/>
-        <Response Text="Let me take a look…"/>
-      </Option>
-      <Option Text="Not right now.">
-        <Response Text="Suit yourself. Come back if you change your mind."/>
-      </Option>
-    </Line>
-    <Conditional Variable="traded" Value="true">
-      <Line Text="Here—your wedge chips. Thanks for doing business.">
-        <Option Text="Thanks.">
-          <Response Text="Stay safe out there."/>
-        </Option>
-      </Line>
-    </Conditional>
-  </Conversation>
-</Conversations>
+<?xml version="1.0" encoding="utf-8"?>
+<conversations>
+  <conversation Name="CyberneticTrader" ID="CyberneticTrader">
+    <node ID="Start">
+      <text>Greetings, traveler. I deal in cybernetic implants and credit wedges. Got any old tech you'd like to convert to hard currency?</text>
+      <choice ID="Trade" text="I have cybernetic implants to trade.">
+        <text>Let me examine what you've brought...</text>
+      </choice>
+      <choice ID="Leave" text="Not today.">
+        <text>Come back anytime. I'll be here converting tech to credits.</text>
+      </choice>
+    </node>
+  </conversation>
+</conversations>
