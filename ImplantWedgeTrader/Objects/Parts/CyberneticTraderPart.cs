@@ -1,107 +1,118 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using XRL.Core;
-using XRL.World.Parts;
-using XRL.World.Parts.Mutation; // for cyber implants
 using XRL.World;
-using XRL.Liquids; // for wedge chips as "liquid currency"
+using XRL.World.Parts;
+using XRL.UI;
+using XRL.Messages;
+using QudGO = XRL.World.GameObject;
+using QudEvent = XRL.World.Event;
 
 namespace GrantCyberneticWedge
 {
-    public class CyberneticTrader : IPart // Define your custom Part
+    [Serializable]
+    public class CyberneticTrader : IPart
     {
-        // Parameters:
-        //   AcceptedTiers: list of implant rarity tiers (low, mid, high)
-        //   MaxChipsPerTier: cap credits per implant (3 max)
+        // Tracks redeemed implants by blueprintId
+        public HashSet<string> RedeemedImplants = new HashSet<string>();
 
-        public HashSet<string> RedeemedImplants;
-        public static readonly Dictionary<string, int> TierValues = new Dictionary<string,int>()
+        public static readonly Dictionary<string, int> TierValues = new()
         {
-            { "Low", 1 },
-            { "Mid", 2 },
-            { "High", 3 }
+            {"Low", 1}, {"Mid", 2}, {"High", 3}
         };
 
-        public override void Register(GameObject obj)
-        {
-            base.Register(obj);
-            RedeemedImplants = new HashSet<string>();
-        }
-
-        public override bool FireEvent(Event E)
+        public override bool FireEvent(QudEvent E)
         {
             if (E.ID == "GetInteractionOptions")
             {
-                // add "Trade Implants" interaction
                 E.GetParameter<List<string>>("Options").Add("Trade Implants");
             }
-            else if (E.ID == "PerformInteraction")
+            else if (E.ID == "PerformInteraction" &&
+                     E.GetParameter<string>("Option") == "Trade Implants")
             {
-                if (E.GetParameter<string>("Option") == "Trade Implants")
-                {
-                    DoTrade();
-                    return true;
-                }
+                DoTrade();
+                return true;
             }
             return base.FireEvent(E);
         }
 
-        public void DoTrade()
+        private void DoTrade()
         {
-            // find implants in player inventory
-            GameObject player = XRLCore.Core.Game.Player.Body;
-            var implants = player.GetObjectsInInventory()
-                .FindAll(o => o.HasPart<IPartMutation>() && !RedeemedImplants.Contains(o.BlueprintId));
+            var playerBody = XRLCore.Core.Game.Player.Body;
+            var implants = playerBody.Inventory.GetObjects()
+                .Where(o => o.HasPart("Cybernetic") && !RedeemedImplants.Contains(o.Blueprint))
+                .ToList();
 
             if (implants.Count == 0)
             {
-                Popup("You have no acceptable implants for trade.");
+                MessageQueue.AddPlayerMessage("You have no acceptable implants for trade.");
                 return;
             }
 
-            // let player choose one implant to redeem
-            GameObject chosen = ChooseImplant(implants);
-            if (chosen == null) return;
+            var chosen = implants.First();
+            string tier = DetermineTier(chosen);
+            int chips = Math.Min(TierValues[tier], 3);
 
-            // determine tier from mutation
-            var part = chosen.GetPart<IPartMutation>();
-            string tier = DetermineTier(part);
-            int chips = Mathf.Min(TierValues[tier], 3);
-
-            // award wedge chips
             AwardChips(chips);
-
-            // mark redeemed and destroy item
-            RedeemedImplants.Add(chosen.BlueprintId);
+            RedeemedImplants.Add(chosen.Blueprint);
             chosen.Destroy();
+            MessageQueue.AddPlayerMessage($"You receive {chips} credit wedge{(chips > 1 ? "s" : "")}.");
+        }        private string DetermineTier(QudGO implant)
+        {
+            // Determine tier based on cybernetic implant properties
+            // Check if it's actually a cybernetic implant
+            if (!implant.HasPart("Cybernetic"))
+                return "Low";
 
-            Popup($"You receive {chips} credit wedge{(chips>1? "s":"")} for trading in the implant.");
+            // Base complexity scoring
+            int complexity = 0;
+
+            // Factor in the implant's tier/complexity
+            if (implant.HasProperty("Tier"))
+            {
+                complexity += implant.GetIntProperty("Tier", 1);
+            }
+
+            // Check for license points property (some cybernetics have this)
+            if (implant.HasProperty("LicensePoints"))
+            {
+                complexity += implant.GetIntProperty("LicensePoints", 0) / 2;
+            }
+
+            // Check for special properties that indicate higher tier
+            if (implant.HasProperty("Value"))
+            {
+                int value = implant.GetIntProperty("Value", 0);
+                if (value > 1000) complexity += 2;
+                else if (value > 500) complexity += 1;
+            }
+
+            // Check if it's a rare or unique implant
+            if (implant.HasTag("Rare") || implant.HasTag("Unique"))
+                complexity += 2;
+
+            // Check for high-tier blueprints by name patterns
+            string blueprint = implant.Blueprint;
+            if (blueprint.Contains("High") || blueprint.Contains("Advanced") || blueprint.Contains("Superior"))
+                complexity += 2;
+            else if (blueprint.Contains("Med") || blueprint.Contains("Standard"))
+                complexity += 1;
+
+            // Determine tier based on complexity
+            if (complexity >= 6) return "High";
+            if (complexity >= 3) return "Mid";
+            return "Low";
         }
 
-        protected virtual GameObject ChooseImplant(List<GameObject> implants)
+        private void AwardChips(int chips)
         {
-            // for simplicity: pick first implant
-            return implants[0];
-        }
-
-        protected virtual string DetermineTier(IPartMutation part)
-        {
-            // basic algorithm: net stats
-            int positive = part.GrantStatChanges().Count;
-            if (positive < 2) return "Low";
-            if (positive < 4) return "Mid";
-            return "High";
-        }
-
-        protected virtual void AwardChips(int chips)
-        {
-            GameObject wedge = GameObject.Create("CreditWedge");
-            wedge.SetStackSize(chips);
-            XRLCore.Core.Game.Player.Body.Add(wedge);
-        }
-
-        protected void Popup(string text)
-        {
-            XRLCore.Core.Game.ShowPopup(text);
+            var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
+            if (chips > 1)
+            {
+                wedge.SetIntProperty("StackSize", chips);
+            }
+            XRLCore.Core.Game.Player.Body.TakeObject(wedge);
         }
     }
 }
