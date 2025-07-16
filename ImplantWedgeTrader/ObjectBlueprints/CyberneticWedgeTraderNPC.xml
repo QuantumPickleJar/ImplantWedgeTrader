@@ -12,10 +12,10 @@
     <part Name="Trade" />
     <part Name="CyberneticTrader" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
-    
+
     <inventoryobject Blueprint="Cloth Robe" Number="1" />
     <inventoryobject Blueprint="Boots" Number="1" />
-    
+
     <tag Name="Merchant" />
     <tag Name="Humanoid" />
     <tag Name="Creature" />
