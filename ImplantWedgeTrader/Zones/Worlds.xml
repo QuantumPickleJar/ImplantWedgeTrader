@@ -2,7 +2,7 @@
   <world Name="JoppaWorld" Load="Merge">
     <cell X="29" Y="25" Load="Merge">
       <zone Name="sixdaystilt" Load="Merge">
-        <builder Class="CyberneticTraderMod.CyberneticTraderZoneBuilder" />
+        <builder Class="CyberneticTraderMod.CyberneticTraderInjector" />
       </zone>
     </cell>
   </world>
