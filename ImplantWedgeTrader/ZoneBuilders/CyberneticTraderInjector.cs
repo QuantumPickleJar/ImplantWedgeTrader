@@ -6,7 +6,7 @@ namespace CyberneticTraderMod
 {
     [Serializable]
     // Simple zone builder invoked via reflection from Worlds.xml
-    public class CyberneticTraderZoneBuilder
+    public class CyberneticTraderInjector
     {
         public bool BuildZone(Zone Z)
         {
