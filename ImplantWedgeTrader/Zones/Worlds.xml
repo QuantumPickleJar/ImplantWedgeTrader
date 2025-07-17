@@ -1,9 +1,9 @@
-  <worlds>
-    <world Name="JoppaWorld" Load="Merge">
-      <cell X="29" Y="25" Load="Merge">
-        <zone Name="sixdaystilt" Load="Merge">
-          <map FileName="SDS_Trader.rpm" />
-        </zone>
-      </cell>
-    </world>
-  </worlds>
+<worlds>
+  <world Name="JoppaWorld" Load="Merge">
+    <cell X="29" Y="25" Load="Merge">
+      <zone Name="sixdaystilt" Load="Merge">
+        <builder Class="CyberneticTraderMod.CyberneticTraderZoneBuilder" />
+      </zone>
+    </cell>
+  </world>
+</worlds>

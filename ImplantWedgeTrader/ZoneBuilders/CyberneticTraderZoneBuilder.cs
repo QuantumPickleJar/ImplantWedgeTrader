@@ -5,16 +5,16 @@ using XRL.World.ZoneBuilders;
 namespace CyberneticTraderMod
 {
     [Serializable]
-    public class CyberneticTraderInjector : ZoneBuilder
+    public class CyberneticTraderZoneBuilder : ZoneBuilder
     {
         public override bool BuildZone(Zone Z)
         {
             if (!Z.ZoneID.Contains("sixdaystilt"))
-                return false;
+                return true;
 
             // Avoid duplicate placement
             if (Z.FindObject(o => o.Blueprint == "CyberneticWedgeTraderNPC") != null)
-                return false;
+                return true;
 
             GameObject trader = GameObjectFactory.Factory.CreateObject("CyberneticWedgeTraderNPC");
             Cell cell = Z.GetCell(65, 17);
