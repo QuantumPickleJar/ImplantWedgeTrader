@@ -7,19 +7,19 @@ namespace CyberneticTraderMod
     [Serializable]
     public class CyberneticTraderInjector : ZoneBuilder
     {
-        public override bool BuildZone(Zone Z)
+        public override void BuildZone(Zone Z)
         {
             if (!Z.ZoneID.Contains("sixdaystilt"))
-                return true;
+                return;
 
             // Avoid duplicate placement
             if (Z.FindObject(o => o.Blueprint == "CyberneticWedgeTraderNPC") != null)
-                return true;
+                return;
 
             GameObject trader = GameObjectFactory.Factory.CreateObject("CyberneticWedgeTraderNPC");
-            Cell cell = Z.GetCell(65, 17) ?? Z.GetRandomEmptyCell();
-            cell?.AddObject(trader);
-            return true;
+            Cell cell = Z.GetCell(65, 17);
+            if (cell != null)
+                cell.AddObject(trader);
         }
     }
 }
