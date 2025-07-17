@@ -3,10 +3,10 @@
   <conversation Name="CyberneticTrader" ID="CyberneticTrader">
     <node ID="Start">
       <text>Greetings, traveler. I deal in cybernetic implants and credit wedges. Got any old tech you'd like to convert to hard currency?</text>
-      <choice ID="Trade" text="I have cybernetic implants to trade." ConversationAction="DoTrade">
+      <choice ID="Trade" Text="I have cybernetic implants to trade." ConversationAction="DoTrade">
         <text>Let me examine what you've brought...</text>
       </choice>
-      <choice ID="Leave" text="Not today.">
+      <choice ID="Leave" Text="Not today.">
         <text>Come back anytime. I'll be here converting tech to credits.</text>
       </choice>
     </node>

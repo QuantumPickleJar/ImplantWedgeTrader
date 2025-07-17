@@ -5,9 +5,10 @@ using XRL.World.ZoneBuilders;
 namespace CyberneticTraderMod
 {
     [Serializable]
-    public class CyberneticTraderZoneBuilder : ZoneBuilder
+    // Simple zone builder invoked via reflection from Worlds.xml
+    public class CyberneticTraderZoneBuilder
     {
-        public override bool BuildZone(Zone Z)
+        public bool BuildZone(Zone Z)
         {
             if (!Z.ZoneID.Contains("sixdaystilt"))
                 return true;
