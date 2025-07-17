@@ -15,6 +15,7 @@
 
     <inventoryobject Blueprint="Cloth Robe" Number="1" />
     <inventoryobject Blueprint="Boots" Number="1" />
+    <inventoryobject Blueprint="CreditWedge1" Number="10" />
 
     <tag Name="Merchant" />
     <tag Name="Humanoid" />
