@@ -5,7 +5,7 @@ using XRL.World.ZoneBuilders;
 namespace CyberneticTraderMod
 {
     [Serializable]
-    public class CyberneticTraderInjector : ZoneBuilder
+    public class CyberneticTraderZoneBuilder : ZoneBuilder
     {
         public override bool BuildZone(Zone Z)
         {
