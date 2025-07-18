@@ -8,13 +8,11 @@
     <part Name="Brain" Hostile="false" Factions="Villagers" />
     <part Name="Stats" Strength="18" Agility="16" Toughness="18" Intelligence="20" Willpower="16" Ego="18" />
     <part Name="Level" Level="15" />
-    <part Name="Inventory" />
-    <part Name="CyberneticTrader" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
+    <part Name="NoTrade" />
 
     <inventoryobject Blueprint="Robe" Number="1" />
-    <inventoryobject Blueprint="Leather boots" Number="1" />
-    <inventoryobject Blueprint="Credit wedge" Number="50" />
+    <inventoryobject Blueprint="LeatherBoots" Number="1" />
 
     <tag Name="Humanoid" />
     <tag Name="Creature" />

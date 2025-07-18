@@ -58,66 +58,8 @@ namespace CyberneticTraderMod
                     return true;
                 }
             }
-            // Legacy interaction support (remove if not needed)
-            else if (E.ID == "GetInteractionOptions")
-            {
-                E.GetParameter<List<string>>("Options").Add("Trade Implants");
-                E.GetParameter<List<string>>("Options").Add("Appraise Items");
-                E.GetParameter<List<string>>("Options").Add("Debug Inventory"); // Add debug option
-            }
-            else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Trade Implants")
-            {
-                DoTrade();
-                return true;
-            }
-            else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Appraise Items")
-            {
-                AppraiseItems();
-                return true;
-            }
-            else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Debug Inventory")
-            {
-                DebugInventory();
-                return true;
-            }
-            return base.FireEvent(E);
-        }
 
-        private void DebugInventory()
-        {
-            var playerBody = XRLCore.Core.Game.Player.Body;
-            var allItems = playerBody.Inventory.GetObjects();
-            
-            MessageQueue.AddPlayerMessage("=== FULL INVENTORY DEBUG ===");
-            MessageQueue.AddPlayerMessage($"Total items: {allItems.Count}");
-            
-            foreach (var item in allItems.Take(10)) // Show first 10 items
-            {
-                MessageQueue.AddPlayerMessage($"--- ITEM: {item.DisplayName} ---");
-                MessageQueue.AddPlayerMessage($"Blueprint: {item.Blueprint}");
-                
-                // Show all parts
-                var parts = item.PartsList;
-                MessageQueue.AddPlayerMessage($"Parts ({parts.Count}): {string.Join(", ", parts.Select(p => p.Name))}");
-                
-                // Show all tags - using HasTag method since GetTags doesn't exist
-                var commonTags = new[] { "Cybernetics", "Implant", "Bionic", "Artifact", "Rare", "Unique" };
-                var itemTags = commonTags.Where(tag => item.HasTag(tag)).ToList();
-                MessageQueue.AddPlayerMessage($"Tags: {string.Join(", ", itemTags)}");
-                
-                // Show key properties
-                var category = item.GetStringProperty("Category");
-                var bodyPartType = item.GetStringProperty("BodyPartType");
-                var tier = item.GetIntProperty("Tier", -1);
-                
-                MessageQueue.AddPlayerMessage($"Category: {category}, BodyPartType: {bodyPartType}, Tier: {tier}");
-                
-                // Test detection
-                bool detected = IsCyberneticImplant(item);
-                MessageQueue.AddPlayerMessage($"Cybernetic Detection: {detected}");
-            }
-            
-            MessageQueue.AddPlayerMessage("=== END DEBUG ===");
+            return base.FireEvent(E);
         }
 
         private void AppraiseItems()

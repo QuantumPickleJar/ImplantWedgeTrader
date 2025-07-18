@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objects>
+  <object Name="CreditWedge1" Inherits="BaseNugget">
+    <part Name="Render" DisplayName="credit wedge" ColorString="&amp;Y" DetailColor="y" TileColor="&amp;Y" Tile="234" />
+    <part Name="Description" Short="A small, triangular piece of crystallized credit. It gleams with a faint electronic pulse, indicating its stored value." />
+    <part Name="Physics" Category="Misc" Weight="0.1" />
+    <part Name="Commerce" Value="75" />
+    <part Name="Metal" />
+    <part Name="Stacker" />
+    
+    <tag Name="Currency" />
+    <tag Name="Valuable" />
+    <tag Name="CreditWedge" />
+  </object>
+
+  <object Name="CreditWedge2" Inherits="CreditWedge1">
+    <part Name="Render" DisplayName="large credit wedge" ColorString="&amp;G" DetailColor="g" TileColor="&amp;G" />
+    <part Name="Description" Short="A larger, more valuable credit wedge. Its surface shimmers with complex data patterns." />
+    <part Name="Commerce" Value="150" />
+  </object>
+
+  <object Name="CreditWedge3" Inherits="CreditWedge1">
+    <part Name="Render" DisplayName="premium credit wedge" ColorString="&amp;M" DetailColor="m" TileColor="&amp;M" />
+    <part Name="Description" Short="A premium credit wedge of exceptional quality. Electronic patterns dance across its surface." />
+    <part Name="Commerce" Value="225" />
+  </object>
+</objects>
