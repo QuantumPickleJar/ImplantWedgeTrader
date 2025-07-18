@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <objects>
-  <object Name="CyberneticWedgeTraderNPC" Inherits="BaseHumanoid">
+  <object Name="CyberneticWedgeTraderNPC" Inherits="Villager">
     <part Name="Render" DisplayName="cybernetic wedge trader" ColorString="&amp;C" DetailColor="M" />
     <part Name="Description" Short="A cybernetic implant trader who deals in credit wedges. Their body shows signs of extensive augmentation, and their eyes gleam with artificial intelligence." />
-    <part Name="Physics" Category="Creature" Weight="160" />
-    <part Name="Body" Type="Humanoid" />
-    <part Name="Brain" Hostile="false" Factions="Villagers" />
-    <part Name="Stats" Strength="18" Agility="16" Toughness="18" Intelligence="20" Willpower="16" Ego="18" />
-    <part Name="Level" Level="15" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
-    <part Name="NoTrade" />
-
+    <part Name="GivesRep" Faction="Villagers" />
+    
     <inventoryobject Blueprint="Robe" Number="1" />
     <inventoryobject Blueprint="LeatherBoots" Number="1" />
 
     <tag Name="Humanoid" />
     <tag Name="Creature" />
+    <tag Name="Villager" />
   </object>
 </objects>
