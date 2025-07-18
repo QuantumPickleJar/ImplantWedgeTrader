@@ -12,10 +12,13 @@
     <part Name="Trade" />
     <part Name="CyberneticTrader" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
+    <part Name="ShopRestockTracker" />
 
     <inventoryobject Blueprint="Cloth Robe" Number="1" />
     <inventoryobject Blueprint="Boots" Number="1" />
-    <inventoryobject Blueprint="CreditWedge1" Number="10" />
+    <inventoryobject Blueprint="CreditWedge1" Number="15" />
+    <inventoryobject Blueprint="CreditWedge2" Number="5" />
+    <inventoryobject Blueprint="CreditWedge3" Number="2" />
 
     <tag Name="Merchant" />
     <tag Name="Humanoid" />

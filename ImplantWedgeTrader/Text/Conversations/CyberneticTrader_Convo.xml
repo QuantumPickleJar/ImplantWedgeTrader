@@ -2,13 +2,16 @@
 <conversations>
   <conversation Name="CyberneticTrader" ID="CyberneticTrader">
     <node ID="Start">
-      <text>Greetings, traveler. I deal in cybernetic implants and credit wedges. Got any old tech you'd like to convert to hard currency?</text>
-      <choice ID="Trade" Text="I have cybernetic implants to trade." ConversationAction="DoTrade">
-        <text>Let me examine what you've brought...</text>
-      </choice>
-      <choice ID="Leave" Text="Not today.">
-        <text>Come back anytime. I'll be here converting tech to credits.</text>
-      </choice>
+      <text>Greetings, traveler. I deal in cybernetic implants and credit wedges. I can convert your old cybernetic implants into hard currency at a fair rate.
+
+Low tier implants: 1 credit wedge
+Mid tier implants: 2 credit wedges  
+High tier implants: 3 credit wedges
+
+What can I do for you?</text>
+      <choice ID="Trade" ConversationAction="DoTrade">I have cybernetic implants to trade.</choice>
+      <choice ID="RegularTrade" Target="End">Let me see your regular wares.</choice>
+      <choice ID="Leave" Target="End">Not today.</choice>
     </node>
   </conversation>
 </conversations>
