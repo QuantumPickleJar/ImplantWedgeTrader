@@ -162,10 +162,14 @@ namespace CyberneticTraderMod
                 string currentTier = DetermineTier(implants[i]);
                 int currentChips = Math.Min(TierValues[currentTier], 3);
                 choices.Add($"{implants[i].DisplayName} (worth {currentChips} credit wedge{(currentChips > 1 ? "s" : "")})");
+                string implantTier = DetermineTier(implants[i]);
+                int implantChips = Math.Min(TierValues[implantTier], 3);
+                choices.Add($"{implants[i].DisplayName} (worth {implantChips} credit wedge{(implantChips > 1 ? "s" : "")})");
             }
             choices.Add("Cancel");
 
             int choice = Popup.PickOption("Choose an implant to trade:", choices.ToArray());
+            int choice = Popup.PickOption("Choose an implant to trade:", Options: choices.ToArray());
             
             if (choice < 0 || choice >= implants.Count)
             {
@@ -173,6 +177,15 @@ namespace CyberneticTraderMod
             }
 
             var chosen = implants[choice];
+<<<<<<<<< Temporary merge branch 1
+            string chosenTier = DetermineTier(chosen);
+            int chosenChips = Math.Min(TierValues[chosenTier], 3);
+
+            AwardChips(chosenChips);
+            RedeemedImplants.Add(chosen.Blueprint);
+            chosen.Destroy();
+            MessageQueue.AddPlayerMessage($"You receive {chosenChips} credit wedge{(chosenChips > 1 ? "s" : "")}.");
+=========
             string finalTier = DetermineTier(chosen);
             int finalChips = Math.Min(TierValues[finalTier], 3);
 
@@ -180,6 +193,7 @@ namespace CyberneticTraderMod
             RedeemedImplants.Add(chosen.Blueprint);
             chosen.Destroy();
             MessageQueue.AddPlayerMessage($"You receive {finalChips} credit wedge{(finalChips > 1 ? "s" : "")}.");
+>>>>>>>>> Temporary merge branch 2
         }
 
         private bool IsCyberneticImplant(QudGO obj)
@@ -245,7 +259,7 @@ namespace CyberneticTraderMod
             
             // Check if it's in the "Cybernetics" category
             string category = obj.GetStringProperty("Category");
-            MessageQueue.AddPlayerMessage($"Debug: Category: {category}");
+>>>>>>>>> Temporary merge branch 2
             
             if (category == "Cybernetics")
             {
@@ -268,6 +282,7 @@ namespace CyberneticTraderMod
                 blueprint.Contains("equipment") && blueprint.Contains("rack"))
             {
                 MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via specific equipment pattern");
+            if (obj.GetStringProperty("Category") == "Cybernetics")
                 return true;
             }
             
