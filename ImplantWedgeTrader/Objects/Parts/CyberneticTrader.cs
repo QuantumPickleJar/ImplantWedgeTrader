@@ -165,7 +165,7 @@ namespace CyberneticTraderMod
             }
             choices.Add("Cancel");
 
-            int choice = Popup.PickOption("Choose an implant to trade:", choices);
+            int choice = Popup.PickOption("Choose an implant to trade:", choices.ToArray());
             
             if (choice < 0 || choice >= implants.Count)
             {
