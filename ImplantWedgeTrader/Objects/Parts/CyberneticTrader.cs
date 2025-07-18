@@ -46,118 +46,158 @@ namespace CyberneticTraderMod
         {
             var playerBody = XRLCore.Core.Game.Player.Body;
             
-            // Debug: List all items in inventory
+            // Debug: Check all items in inventory
             var allItems = playerBody.Inventory.GetObjects();
-            MessageQueue.AddPlayerMessage($"Debug: You have {allItems.Count} total items in inventory.");
+            MessageQueue.AddPlayerMessage($"Debug: Checking {allItems.Count} items in inventory...");
             
-            foreach (var item in allItems)
-            {
-                bool hasCyberneticsBase = item.HasPart("CyberneticsBaseItem");
-                bool hasCyberneticsTag = item.HasTag("CyberneticImplant");
-                bool hasBodyPart = item.HasPart("BodyPart");
-                
-                if (hasCyberneticsBase || hasCyberneticsTag || hasBodyPart || item.Blueprint.ToLower().Contains("cyber"))
-                {
-                    MessageQueue.AddPlayerMessage($"Debug: {item.DisplayName} (blueprint: {item.Blueprint}) - CyberneticsBase: {hasCyberneticsBase}, CyberneticTag: {hasCyberneticsTag}, BodyPart: {hasBodyPart}");
-                }
-            }
-            
-            var implants = playerBody.Inventory.GetObjects()
-                .Where(o => (o.HasPart("CyberneticsBaseItem") || o.HasTag("CyberneticImplant") || o.HasPart("BodyPart")) && !RedeemedImplants.Contains(o.Blueprint))
+            var implants = allItems
+                .Where(o => IsCyberneticImplant(o) && !RedeemedImplants.Contains(o.Blueprint))
                 .ToList();
+
+            // Debug: Show what was found
+            MessageQueue.AddPlayerMessage($"Debug: Found {implants.Count} tradeable implants.");
+            foreach (var implant in implants.Take(3)) // Show first 3 for debugging
+            {
+                MessageQueue.AddPlayerMessage($"Debug: Found {implant.DisplayName} ({implant.Blueprint})");
+            }
 
             if (implants.Count == 0)
             {
-                MessageQueue.AddPlayerMessage("You have no cybernetic implants available for trade. I need cybernetic implants or body parts to convert.");
+                // Try to find any item that might be an implant for debugging
+                var possibleImplants = allItems.Where(o => 
+                    o.Blueprint.ToLower().Contains("implant") || 
+                    o.DisplayName.ToLower().Contains("implant") ||
+                    o.Blueprint.ToLower().Contains("cybernetic") ||
+                    o.DisplayName.ToLower().Contains("cybernetic")).ToList();
+                
+                if (possibleImplants.Count > 0)
+                {
+                    MessageQueue.AddPlayerMessage($"Debug: Found {possibleImplants.Count} items with 'implant' or 'cybernetic' in name, but they didn't pass detection.");
+                    foreach (var item in possibleImplants.Take(3))
+                    {
+                        MessageQueue.AddPlayerMessage($"Debug: Item {item.DisplayName} ({item.Blueprint}) - checking why it failed...");
+                    }
+                }
+                
+                MessageQueue.AddPlayerMessage("You have no acceptable implants for trade.");
                 return;
             }
 
-            // Show selection UI if there are multiple implants
-            QudGO chosen;
-            if (implants.Count == 1)
+            // Let player choose which implant to trade
+            List<string> choices = new List<string>();
+            for (int i = 0; i < implants.Count; i++)
             {
-                chosen = implants[0];
+                string tier = DetermineTier(implants[i]);
+                int chips = Math.Min(TierValues[tier], 3);
+                choices.Add($"{implants[i].DisplayName} (worth {chips} credit wedge{(chips > 1 ? "s" : "")})");
             }
-            else
+            choices.Add("Cancel");
+
+            int choice = Popup.ShowOptionList("Choose an implant to trade:", choices.ToArray(), null, 0, null, 60, false, true);
+            
+            if (choice < 0 || choice >= implants.Count)
             {
-                // Use the picker to let player choose which implant to trade
-                List<QudGO> options = new List<QudGO>(implants);
-                int choice = Popup.ShowOptionList("Choose an implant to trade:", 
-                    options.Select(o => o.DisplayName + " (" + DetermineTier(o) + " tier)").ToArray());
-                
-                if (choice < 0 || choice >= options.Count)
-                {
-                    MessageQueue.AddPlayerMessage("Trade cancelled.");
-                    return;
-                }
-                chosen = options[choice];
+                return; // Cancelled
             }
 
+            var chosen = implants[choice];
             string tier = DetermineTier(chosen);
-            int chips = TierValues[tier];
+            int chips = Math.Min(TierValues[tier], 3);
 
             AwardChips(chips);
             RedeemedImplants.Add(chosen.Blueprint);
             chosen.Destroy();
-            MessageQueue.AddPlayerMessage($"You trade your {chosen.DisplayName} for {chips} credit wedge{(chips > 1 ? "s" : "")}.");
+            MessageQueue.AddPlayerMessage($"You receive {chips} credit wedge{(chips > 1 ? "s" : "")}.");
+        }
+
+        private bool IsCyberneticImplant(QudGO obj)
+        {
+            // Check for common cybernetic implant characteristics
+            if (obj.HasPart("Cybernetics") || obj.HasPart("CyberneticsBaseItem") || obj.HasPart("ModImplant"))
+                return true;
+            
+            // Check blueprint name patterns
+            string blueprint = obj.Blueprint.ToLower();
+            if (blueprint.Contains("implant") || blueprint.Contains("cybernetic") || 
+                blueprint.Contains("bionic") || blueprint.Contains("prosthetic"))
+                return true;
+            
+            // Check tags
+            if (obj.HasTag("Cybernetics") || obj.HasTag("Implant") || obj.HasTag("Bionic"))
+                return true;
+            
+            // Check if it's in the "Cybernetics" category
+            if (obj.GetProperty("Category") == "Cybernetics")
+                return true;
+            
+            // Additional checks for common implant names
+            if (blueprint.Contains("optical") || blueprint.Contains("neural") ||
+                blueprint.Contains("muscular") || blueprint.Contains("respiratory") ||
+                blueprint.Contains("cardiovascular") || blueprint.Contains("dermal") ||
+                blueprint.Contains("skeletal") || blueprint.Contains("metabolic"))
+                return true;
+            
+            return false;
         }
 
         private string DetermineTier(QudGO implant)
         {
-            if (!implant.HasPart("CyberneticsBaseItem") && !implant.HasTag("CyberneticImplant") && !implant.HasPart("BodyPart"))
+            if (!IsCyberneticImplant(implant))
                 return "Low";
 
             int complexity = 0;
             
-            // Check license point cost (primary indicator)
-            if (implant.HasProperty("LicensePoints"))
-            {
-                int licensePoints = implant.GetIntProperty("LicensePoints", 0);
-                complexity += licensePoints;
-            }
-            
             // Check tier property
             if (implant.HasProperty("Tier"))
             {
-                complexity += implant.GetIntProperty("Tier", 1) * 2;
+                complexity += implant.GetIntProperty("Tier", 1);
             }
             
-            // Check value as secondary indicator
+            // Check license points
+            if (implant.HasProperty("LicensePoints"))
+            {
+                complexity += implant.GetIntProperty("LicensePoints", 0) / 2;
+            }
+            
+            // Check value
             if (implant.HasProperty("Value"))
             {
                 int value = implant.GetIntProperty("Value", 0);
-                if (value > 2000) complexity += 3;
-                else if (value > 1000) complexity += 2;
+                if (value > 1000) complexity += 2;
                 else if (value > 500) complexity += 1;
             }
             
-            // Check for special tags
+            // Check rarity tags
             if (implant.HasTag("Rare") || implant.HasTag("Unique") || implant.HasTag("Artifact"))
-                complexity += 3;
+                complexity += 2;
             
-            // Blueprint-based complexity assessment
+            // Check blueprint name for quality indicators
             string blueprint = implant.Blueprint.ToLower();
-            if (blueprint.Contains("high") || blueprint.Contains("advanced") || blueprint.Contains("superior") || 
-                blueprint.Contains("mk iii") || blueprint.Contains("mkiii"))
+            if (blueprint.Contains("high") || blueprint.Contains("advanced") || 
+                blueprint.Contains("superior") || blueprint.Contains("master") ||
+                blueprint.Contains("legendary"))
                 complexity += 2;
             else if (blueprint.Contains("med") || blueprint.Contains("standard") || 
-                     blueprint.Contains("mk ii") || blueprint.Contains("mkii"))
+                     blueprint.Contains("improved"))
                 complexity += 1;
 
-            // Determine tier based on total complexity
-            if (complexity >= 8) return "High";
-            if (complexity >= 4) return "Mid";
+            // Check for special implant types that should be higher tier
+            if (blueprint.Contains("night") || blueprint.Contains("thermal") ||
+                blueprint.Contains("telescopic") || blueprint.Contains("penetrating"))
+                complexity += 1;
+
+            if (complexity >= 6) return "High";
+            if (complexity >= 3) return "Mid";
             return "Low";
         }
 
         private void AwardChips(int chips)
         {
-            var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
-            if (chips > 1)
+            for (int i = 0; i < chips; i++)
             {
-                wedge.SetIntProperty("StackSize", chips);
+                var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
+                XRLCore.Core.Game.Player.Body.TakeObject(wedge);
             }
-            XRLCore.Core.Game.Player.Body.TakeObject(wedge);
         }
     }
 }
