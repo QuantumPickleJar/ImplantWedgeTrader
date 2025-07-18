@@ -87,13 +87,13 @@ namespace CyberneticTraderMod
             List<string> choices = new List<string>();
             for (int i = 0; i < implants.Count; i++)
             {
-                string tier = DetermineTier(implants[i]);
-                int chips = Math.Min(TierValues[tier], 3);
-                choices.Add($"{implants[i].DisplayName} (worth {chips} credit wedge{(chips > 1 ? "s" : "")})");
+                string implantTier = DetermineTier(implants[i]);
+                int implantChips = Math.Min(TierValues[implantTier], 3);
+                choices.Add($"{implants[i].DisplayName} (worth {implantChips} credit wedge{(implantChips > 1 ? "s" : "")})");
             }
             choices.Add("Cancel");
 
-            int choice = Popup.ShowOptionList("Choose an implant to trade:", choices.ToArray(), null, 0, null, 60, false, true);
+            int choice = Popup.PickOption("Choose an implant to trade:", Options: choices.ToArray());
             
             if (choice < 0 || choice >= implants.Count)
             {
@@ -101,13 +101,13 @@ namespace CyberneticTraderMod
             }
 
             var chosen = implants[choice];
-            string tier = DetermineTier(chosen);
-            int chips = Math.Min(TierValues[tier], 3);
+            string chosenTier = DetermineTier(chosen);
+            int chosenChips = Math.Min(TierValues[chosenTier], 3);
 
-            AwardChips(chips);
+            AwardChips(chosenChips);
             RedeemedImplants.Add(chosen.Blueprint);
             chosen.Destroy();
-            MessageQueue.AddPlayerMessage($"You receive {chips} credit wedge{(chips > 1 ? "s" : "")}.");
+            MessageQueue.AddPlayerMessage($"You receive {chosenChips} credit wedge{(chosenChips > 1 ? "s" : "")}.");
         }
 
         private bool IsCyberneticImplant(QudGO obj)
@@ -127,7 +127,7 @@ namespace CyberneticTraderMod
                 return true;
             
             // Check if it's in the "Cybernetics" category
-            if (obj.GetProperty("Category") == "Cybernetics")
+            if (obj.GetStringProperty("Category") == "Cybernetics")
                 return true;
             
             // Additional checks for common implant names
