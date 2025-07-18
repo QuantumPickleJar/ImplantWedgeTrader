@@ -28,10 +28,16 @@ namespace CyberneticTraderMod
             if (E.ID == "GetInteractionOptions")
             {
                 E.GetParameter<List<string>>("Options").Add("Trade Implants");
+                E.GetParameter<List<string>>("Options").Add("Debug Inventory"); // Add debug option
             }
             else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Trade Implants")
             {
                 DoTrade();
+                return true;
+            }
+            else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Debug Inventory")
+            {
+                DebugInventory();
                 return true;
             }
             else if (E.ID == "ConversationAction" && E.GetStringParameter("Action") == "DoTrade")
@@ -40,6 +46,42 @@ namespace CyberneticTraderMod
                 return true;
             }
             return base.FireEvent(E);
+        }
+
+        private void DebugInventory()
+        {
+            var playerBody = XRLCore.Core.Game.Player.Body;
+            var allItems = playerBody.Inventory.GetObjects();
+            
+            MessageQueue.AddPlayerMessage("=== FULL INVENTORY DEBUG ===");
+            MessageQueue.AddPlayerMessage($"Total items: {allItems.Count}");
+            
+            foreach (var item in allItems.Take(10)) // Show first 10 items
+            {
+                MessageQueue.AddPlayerMessage($"--- ITEM: {item.DisplayName} ---");
+                MessageQueue.AddPlayerMessage($"Blueprint: {item.Blueprint}");
+                
+                // Show all parts
+                var parts = item.PartsList;
+                MessageQueue.AddPlayerMessage($"Parts ({parts.Count}): {string.Join(", ", parts.Select(p => p.Name))}");
+                
+                // Show all tags
+                var tags = item.GetTags();
+                MessageQueue.AddPlayerMessage($"Tags ({tags.Count}): {string.Join(", ", tags)}");
+                
+                // Show key properties
+                var category = item.GetStringProperty("Category");
+                var bodyPartType = item.GetStringProperty("BodyPartType");
+                var tier = item.GetIntProperty("Tier", -1);
+                
+                MessageQueue.AddPlayerMessage($"Category: {category}, BodyPartType: {bodyPartType}, Tier: {tier}");
+                
+                // Test detection
+                bool detected = IsCyberneticImplant(item);
+                MessageQueue.AddPlayerMessage($"Cybernetic Detection: {detected}");
+            }
+            
+            MessageQueue.AddPlayerMessage("=== END DEBUG ===");
         }
 
         private void DoTrade()
@@ -53,6 +95,35 @@ namespace CyberneticTraderMod
             var implants = allItems
                 .Where(o => IsCyberneticImplant(o) && !RedeemedImplants.Contains(o.Blueprint))
                 .ToList();
+
+            // If no implants found through primary detection, try secondary methods
+            if (implants.Count == 0)
+            {
+                MessageQueue.AddPlayerMessage("Debug: Primary detection failed, trying secondary methods...");
+                
+                // Look for items that are equippable and might be cybernetics
+                var equipableItems = allItems.Where(o => 
+                    o.HasPart("Armor") || o.HasPart("MeleeWeapon") || o.HasPart("Shield") || 
+                    o.HasPart("ModImplant") || o.HasPart("Equipment") || o.HasPart("Physics")).ToList();
+                
+                MessageQueue.AddPlayerMessage($"Debug: Found {equipableItems.Count} equipable items to check");
+                
+                foreach (var item in equipableItems)
+                {
+                    // Check if it might be cybernetic equipment
+                    string itemName = item.DisplayName.ToLower();
+                    string itemBlueprint = item.Blueprint.ToLower();
+                    
+                    if ((itemName.Contains("implant") || itemName.Contains("cybernetic") || 
+                         itemBlueprint.Contains("implant") || itemBlueprint.Contains("cybernetic") ||
+                         itemName.Contains("bionic") || itemBlueprint.Contains("bionic")) &&
+                        !RedeemedImplants.Contains(item.Blueprint))
+                    {
+                        MessageQueue.AddPlayerMessage($"Debug: Secondary detection found: {item.DisplayName}");
+                        implants.Add(item);
+                    }
+                }
+            }
 
             // Debug: Show what was found
             MessageQueue.AddPlayerMessage($"Debug: Found {implants.Count} tradeable implants.");
@@ -87,13 +158,13 @@ namespace CyberneticTraderMod
             List<string> choices = new List<string>();
             for (int i = 0; i < implants.Count; i++)
             {
-                string tier = DetermineTier(implants[i]);
-                int chips = Math.Min(TierValues[tier], 3);
-                choices.Add($"{implants[i].DisplayName} (worth {chips} credit wedge{(chips > 1 ? "s" : "")})");
+                string currentTier = DetermineTier(implants[i]);
+                int currentChips = Math.Min(TierValues[currentTier], 3);
+                choices.Add($"{implants[i].DisplayName} (worth {currentChips} credit wedge{(currentChips > 1 ? "s" : "")})");
             }
             choices.Add("Cancel");
 
-            int choice = Popup.ShowOptionList("Choose an implant to trade:", choices.ToArray(), null, 0, null, 60, false, true);
+            int choice = Popup.PickOption("Choose an implant to trade:", choices.ToArray());
             
             if (choice < 0 || choice >= implants.Count)
             {
@@ -101,42 +172,125 @@ namespace CyberneticTraderMod
             }
 
             var chosen = implants[choice];
-            string tier = DetermineTier(chosen);
-            int chips = Math.Min(TierValues[tier], 3);
+            string finalTier = DetermineTier(chosen);
+            int finalChips = Math.Min(TierValues[finalTier], 3);
 
-            AwardChips(chips);
+            AwardChips(finalChips);
             RedeemedImplants.Add(chosen.Blueprint);
             chosen.Destroy();
-            MessageQueue.AddPlayerMessage($"You receive {chips} credit wedge{(chips > 1 ? "s" : "")}.");
+            MessageQueue.AddPlayerMessage($"You receive {finalChips} credit wedge{(finalChips > 1 ? "s" : "")}.");
         }
 
         private bool IsCyberneticImplant(QudGO obj)
         {
-            // Check for common cybernetic implant characteristics
+            // Quick check for known cybernetic blueprint patterns
+            string blueprint = obj.Blueprint.ToLower();
+            string displayName = obj.DisplayName.ToLower();
+            
+            // Known cybernetic items from research
+            var knownCyberneticPatterns = new[]
+            {
+                "night", "vision", "goggle", "optical", "neural", "muscular", "respiratory",
+                "cardiovascular", "dermal", "skeletal", "metabolic", "implant", "cybernetic",
+                "bionic", "prosthetic", "anchor", "ontological", "ninefold", "boot",
+                "equipment", "rack", "stasis", "entangler", "polyphase", "modulator",
+                "precision", "force", "lathe"
+            };
+            
+            // Quick pattern check first
+            bool hasPattern = knownCyberneticPatterns.Any(pattern => 
+                blueprint.Contains(pattern) || displayName.Contains(pattern));
+            
+            if (!hasPattern)
+            {
+                return false; // Skip detailed checks if no patterns match
+            }
+            
+            // Now do detailed checks
+            MessageQueue.AddPlayerMessage($"Debug: Detailed analysis of {obj.DisplayName} - passed pattern check");
+            
+            // Check for common cybernetic implant parts
+            var parts = obj.PartsList;
+            
             if (obj.HasPart("Cybernetics") || obj.HasPart("CyberneticsBaseItem") || obj.HasPart("ModImplant"))
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via part check");
                 return true;
+            }
             
             // Check blueprint name patterns
-            string blueprint = obj.Blueprint.ToLower();
             if (blueprint.Contains("implant") || blueprint.Contains("cybernetic") || 
                 blueprint.Contains("bionic") || blueprint.Contains("prosthetic"))
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via blueprint pattern");
                 return true;
+            }
             
             // Check tags
             if (obj.HasTag("Cybernetics") || obj.HasTag("Implant") || obj.HasTag("Bionic"))
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via tag check");
                 return true;
+            }
             
             // Check if it's in the "Cybernetics" category
-            if (obj.GetProperty("Category") == "Cybernetics")
-                return true;
+            string category = obj.GetStringProperty("Category");
             
-            // Additional checks for common implant names
-            if (blueprint.Contains("optical") || blueprint.Contains("neural") ||
-                blueprint.Contains("muscular") || blueprint.Contains("respiratory") ||
-                blueprint.Contains("cardiovascular") || blueprint.Contains("dermal") ||
-                blueprint.Contains("skeletal") || blueprint.Contains("metabolic"))
+            if (category == "Cybernetics")
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via category");
                 return true;
+            }
             
+            // Check display name for cybernetic keywords
+            if (displayName.Contains("implant") || displayName.Contains("cybernetic") || 
+                displayName.Contains("bionic") || displayName.Contains("prosthetic"))
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via display name");
+                return true;
+            }
+            
+            // Check for common Caves of Qud cybernetic equipment patterns
+            if (blueprint.Contains("night") && blueprint.Contains("vision") ||
+                blueprint.Contains("ontological") && blueprint.Contains("anchor") ||
+                blueprint.Contains("ninefold") && blueprint.Contains("boot") ||
+                blueprint.Contains("equipment") && blueprint.Contains("rack"))
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via specific equipment pattern");
+                return true;
+            }
+            
+            // Check for common Caves of Qud cybernetic parts by looking at part names
+            foreach (var part in parts)
+            {
+                string partName = part.Name.ToLower();
+                if (partName.Contains("cybernetic") || partName.Contains("implant") || 
+                    partName.Contains("bionic") || partName.Contains("augment"))
+                {
+                    MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via part name: {part.Name}");
+                    return true;
+                }
+            }
+            
+            // Final check: see if the item is equipable in a cybernetic slot
+            if (obj.HasProperty("BodyPartType"))
+            {
+                string bodyPartType = obj.GetStringProperty("BodyPartType");
+                if (bodyPartType.ToLower().Contains("cybernetic"))
+                {
+                    MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via body part type");
+                    return true;
+                }
+            }
+            
+            // Check if it's wearable equipment that might be cybernetic
+            if (obj.HasPart("Armor") && hasPattern)
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected as cybernetic armor");
+                return true;
+            }
+            
+            MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} failed all detection checks");
             return false;
         }
 

@@ -6,7 +6,7 @@
   "loadPriority": 5000,
   "dependencies": [],
   "scripts": [
-    "Objects/Parts/CyberneticTraderPart.cs",
-    "Zones/AddCyberneticTrader.cs"
+    "ImplantWedgeTrader/Objects/Parts/CyberneticTrader.cs",
+    "ImplantWedgeTrader/ZoneBuilders/CyberneticTraderInjector.cs"
   ]
 }
