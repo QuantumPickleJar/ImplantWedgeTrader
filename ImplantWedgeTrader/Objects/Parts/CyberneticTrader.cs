@@ -96,21 +96,81 @@ namespace CyberneticTraderMod
             MessageQueue.AddPlayerMessage("=== END DEBUG ===");
         }
 
+        private void AppraiseItems()
+        {
+            var playerBody = XRLCore.Core.Game.Player.Body;
+            var allItems = playerBody.Inventory.GetObjects();
+            
+            MessageQueue.AddPlayerMessage("=== ITEM APPRAISAL ===");
+            
+            var valuableItems = allItems.Where(item => CalculateItemValue(item) > 0).ToList();
+            
+            if (valuableItems.Count == 0)
+            {
+                MessageQueue.AddPlayerMessage("I don't see any items I'd be interested in trading for.");
+                return;
+            }
+            
+            MessageQueue.AddPlayerMessage($"I can see {valuableItems.Count} items worth trading:");
+            
+            foreach (var item in valuableItems.Take(10))
+            {
+                int value = CalculateItemValue(item);
+                string valueText = value > 1 ? $"{value} credit wedges" : "1 credit wedge";
+                MessageQueue.AddPlayerMessage($"• {item.DisplayName} - worth {valueText}");
+            }
+            
+            if (valuableItems.Count > 10)
+            {
+                MessageQueue.AddPlayerMessage($"... and {valuableItems.Count - 10} more items.");
+            }
+        }
+
         private void DoTrade()
         {
             var playerBody = XRLCore.Core.Game.Player.Body;
+            var allItems = playerBody.Inventory.GetObjects();
             
             MessageQueue.AddPlayerMessage("=== CYBERNETIC TRADER ===");
-            MessageQueue.AddPlayerMessage("Choose an item from your inventory to trade for credit wedges.");
             
-            // Use the native inventory selection system
-            var selectedItem = InventoryScreen.ShowInventory(playerBody, null, "Choose an item to trade:", null, true);
+            // Filter to items we're interested in
+            var tradeableItems = allItems.Where(item => 
+                CalculateItemValue(item) > 0 && 
+                !RedeemedImplants.Contains(item.Blueprint)).ToList();
             
-            if (selectedItem == null)
+            if (tradeableItems.Count == 0)
+            {
+                MessageQueue.AddPlayerMessage("You have no items I'm interested in, or you've already traded them all.");
+                return;
+            }
+            
+            // Create a list of choices for the player
+            var choices = new List<string>();
+            for (int i = 0; i < tradeableItems.Count; i++)
+            {
+                var item = tradeableItems[i];
+                int value = CalculateItemValue(item);
+                string valueText = value > 1 ? $"{value} wedges" : "1 wedge";
+                choices.Add($"{item.DisplayName} ({valueText})");
+            }
+            choices.Add("Cancel");
+            
+            // Let player choose (building the choice string manually)
+            string choiceString = "";
+            for (int i = 0; i < choices.Count; i++)
+            {
+                choiceString += $"&{i + 1}){choices[i]}\n";
+            }
+            
+            int choice = Popup.PickOption("Choose an item to trade:", choiceString);
+            
+            if (choice < 0 || choice >= tradeableItems.Count)
             {
                 MessageQueue.AddPlayerMessage("Trade cancelled.");
                 return;
             }
+            
+            var selectedItem = tradeableItems[choice];
             
             // Skip items that were already traded
             if (RedeemedImplants.Contains(selectedItem.Blueprint))
@@ -129,7 +189,7 @@ namespace CyberneticTraderMod
             }
             
             // Confirm the trade using XRL.UI.Popup
-            if (Popup.ShowYesNo($"Trade {selectedItem.DisplayName} for {tradeValue} credit wedge{(tradeValue > 1 ? "s" : "")}?"))
+            if (Popup.ShowYesNo($"Trade {selectedItem.DisplayName} for {tradeValue} credit wedge{(tradeValue > 1 ? "s" : "")}?") == DialogResult.Yes)
             {
                 AwardChips(tradeValue);
                 RedeemedImplants.Add(selectedItem.Blueprint);
