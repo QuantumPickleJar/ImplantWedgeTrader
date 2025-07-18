@@ -65,9 +65,10 @@ namespace CyberneticTraderMod
                 var parts = item.PartsList;
                 MessageQueue.AddPlayerMessage($"Parts ({parts.Count}): {string.Join(", ", parts.Select(p => p.Name))}");
                 
-                // Show all tags
-                var tags = item.GetTags();
-                MessageQueue.AddPlayerMessage($"Tags ({tags.Count}): {string.Join(", ", tags)}");
+                // Show all tags - using HasTag method since GetTags doesn't exist
+                var commonTags = new[] { "Cybernetics", "Implant", "Bionic", "Artifact", "Rare", "Unique" };
+                var itemTags = commonTags.Where(tag => item.HasTag(tag)).ToList();
+                MessageQueue.AddPlayerMessage($"Tags: {string.Join(", ", itemTags)}");
                 
                 // Show key properties
                 var category = item.GetStringProperty("Category");
@@ -187,30 +188,39 @@ namespace CyberneticTraderMod
             string blueprint = obj.Blueprint.ToLower();
             string displayName = obj.DisplayName.ToLower();
             
-            // Known cybernetic items from research
+            // Known cybernetic items from research - more specific patterns first
             var knownCyberneticPatterns = new[]
             {
+                "implant", "cybernetic", "bionic", "prosthetic", 
                 "night", "vision", "goggle", "optical", "neural", "muscular", "respiratory",
-                "cardiovascular", "dermal", "skeletal", "metabolic", "implant", "cybernetic",
-                "bionic", "prosthetic", "anchor", "ontological", "ninefold", "boot",
+                "cardiovascular", "dermal", "skeletal", "metabolic", 
+                "anchor", "ontological", "ninefold", "boot",
                 "equipment", "rack", "stasis", "entangler", "polyphase", "modulator",
-                "precision", "force", "lathe"
+                "precision", "force", "lathe", "overloaded", "enhanced", "augmented"
             };
             
             // Quick pattern check first
             bool hasPattern = knownCyberneticPatterns.Any(pattern => 
                 blueprint.Contains(pattern) || displayName.Contains(pattern));
             
-            if (!hasPattern)
+            // Also check if it's any kind of equipment/wearable that might be cybernetic
+            bool isWearable = obj.HasPart("Armor") || obj.HasPart("Equipment") || 
+                              obj.HasPart("Shield") || obj.HasPart("Goggles") ||
+                              obj.GetStringProperty("WornOn") != null;
+            
+            // If no pattern and not wearable, skip detailed checks
+            if (!hasPattern && !isWearable)
             {
-                return false; // Skip detailed checks if no patterns match
+                return false;
             }
             
-            // Now do detailed checks
-            MessageQueue.AddPlayerMessage($"Debug: Detailed analysis of {obj.DisplayName} - passed pattern check");
+            // Now do detailed checks with debug output
+            MessageQueue.AddPlayerMessage($"Debug: Analyzing {obj.DisplayName} - pattern:{hasPattern}, wearable:{isWearable}");
             
             // Check for common cybernetic implant parts
             var parts = obj.PartsList;
+            var partNames = string.Join(", ", parts.Select(p => p.Name).Take(3));
+            MessageQueue.AddPlayerMessage($"Debug: Parts: {partNames}");
             
             if (obj.HasPart("Cybernetics") || obj.HasPart("CyberneticsBaseItem") || obj.HasPart("ModImplant"))
             {
@@ -235,6 +245,7 @@ namespace CyberneticTraderMod
             
             // Check if it's in the "Cybernetics" category
             string category = obj.GetStringProperty("Category");
+            MessageQueue.AddPlayerMessage($"Debug: Category: {category}");
             
             if (category == "Cybernetics")
             {
@@ -265,7 +276,8 @@ namespace CyberneticTraderMod
             {
                 string partName = part.Name.ToLower();
                 if (partName.Contains("cybernetic") || partName.Contains("implant") || 
-                    partName.Contains("bionic") || partName.Contains("augment"))
+                    partName.Contains("bionic") || partName.Contains("augment") ||
+                    partName.Contains("overloadable") || partName.Contains("modimplant"))
                 {
                     MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via part name: {part.Name}");
                     return true;
@@ -276,6 +288,7 @@ namespace CyberneticTraderMod
             if (obj.HasProperty("BodyPartType"))
             {
                 string bodyPartType = obj.GetStringProperty("BodyPartType");
+                MessageQueue.AddPlayerMessage($"Debug: BodyPartType: {bodyPartType}");
                 if (bodyPartType.ToLower().Contains("cybernetic"))
                 {
                     MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via body part type");
@@ -283,10 +296,22 @@ namespace CyberneticTraderMod
                 }
             }
             
-            // Check if it's wearable equipment that might be cybernetic
-            if (obj.HasPart("Armor") && hasPattern)
+            // Check where it can be worn
+            string wornOn = obj.GetStringProperty("WornOn");
+            if (!string.IsNullOrEmpty(wornOn))
             {
-                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected as cybernetic armor");
+                MessageQueue.AddPlayerMessage($"Debug: WornOn: {wornOn}");
+                if (wornOn.ToLower().Contains("cybernetic") || wornOn.ToLower().Contains("implant"))
+                {
+                    MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected via WornOn location");
+                    return true;
+                }
+            }
+            
+            // Check if it's wearable equipment that matches cybernetic patterns
+            if (isWearable && hasPattern)
+            {
+                MessageQueue.AddPlayerMessage($"Debug: {obj.DisplayName} detected as wearable with cybernetic pattern");
                 return true;
             }
             
