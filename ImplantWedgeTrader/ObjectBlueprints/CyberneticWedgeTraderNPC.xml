@@ -5,18 +5,17 @@
     <part Name="Description" Short="A cybernetic implant trader who deals in credit wedges. Their body shows signs of extensive augmentation, and their eyes gleam with artificial intelligence." />
     <part Name="Physics" Category="Creature" Weight="160" />
     <part Name="Body" Type="Humanoid" />
-    <part Name="Brain" Hostile="false" Factions="Merchants" />
+    <part Name="Brain" Hostile="false" Factions="Villagers" />
     <part Name="Stats" Strength="18" Agility="16" Toughness="18" Intelligence="20" Willpower="16" Ego="18" />
     <part Name="Level" Level="15" />
     <part Name="Inventory" />
     <part Name="CyberneticTrader" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
 
-    <inventoryobject Blueprint="Cloth Robe" Number="1" />
-    <inventoryobject Blueprint="Boots" Number="1" />
-    <inventoryobject Blueprint="CreditWedge1" Number="10" />
+    <inventoryobject Blueprint="Robe" Number="1" />
+    <inventoryobject Blueprint="Leather boots" Number="1" />
+    <inventoryobject Blueprint="Credit wedge" Number="50" />
 
-    <tag Name="Merchant" />
     <tag Name="Humanoid" />
     <tag Name="Creature" />
   </object>

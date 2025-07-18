@@ -26,7 +26,9 @@
     </node>
 
     <node ID="Info">
-      <text>"I specialize in cybernetic implants and augmentations. I can convert your old or unwanted implants into credit wedges - a more liquid form of currency. My rates are fair: basic implants fetch 1 credit wedge, advanced ones 2 wedges, and the most sophisticated can earn you 3 wedges."</text>
+      <text>"I specialize in cybernetic implants and augmentations. I can convert your old or unwanted implants into credit wedges - a more liquid form of currency. My rates are fair: basic implants fetch 1 credit wedge, advanced ones 2 wedges, and the most sophisticated can earn you 3 wedges."
+
+"I only deal in implant conversion - I don't sell items through traditional commerce. My expertise is in evaluating and liquidating cybernetic assets."</text>
       <choice ID="Back" GotoID="Start" Text="I see. Let me consider my options." />
     </node>
 

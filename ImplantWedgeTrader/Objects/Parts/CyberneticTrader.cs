@@ -4,6 +4,7 @@ using System.Linq;
 using XRL.Core;
 using XRL.World;
 using XRL.World.Parts;
+using XRL.World.Parts.Mutation;
 using XRL.UI;
 using XRL.Messages;
 using QudGO = XRL.World.GameObject;
