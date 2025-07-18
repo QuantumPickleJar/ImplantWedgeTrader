@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<conversations>
+  <conversation ID="CyberneticTrader">
+    <node ID="Start">
+      <text>The cybernetic trader's augmented eyes scan you with mechanical precision. "Greetings, traveler. I deal in cybernetic implants - I can appraise your augmentations and offer credit wedges for those you're willing to part with."</text>
+      <choice ID="Trade" GotoID="TradeMenu" Text="I'd like to trade my cybernetic implants for credit wedges." />
+      <choice ID="Appraise" GotoID="AppraiseMenu" Text="Can you appraise my cybernetic implants?" />
+      <choice ID="Info" GotoID="Info" Text="Tell me more about your services." />
+      <choice ID="Goodbye" GotoID="End" Text="Farewell." />
+    </node>
+
+    <node ID="TradeMenu">
+      <text>The trader's mechanical fingers dance across a holographic display. "Let me examine your cybernetic implants..."</text>
+      <choice ID="PerformTrade" GotoID="Start" Text="[Trade cybernetic implants for credit wedges]">
+        <action>DoTrade</action>
+      </choice>
+      <choice ID="Back" GotoID="Start" Text="Actually, let me think about this." />
+    </node>
+
+    <node ID="AppraiseMenu">
+      <text>The trader's sensors hum softly as they analyze your equipment. "I can tell you the value of your cybernetic implants without any obligation to trade."</text>
+      <choice ID="PerformAppraise" GotoID="Start" Text="[Appraise my cybernetic implants]">
+        <action>AppraiseItems</action>
+      </choice>
+      <choice ID="Back" GotoID="Start" Text="Never mind." />
+    </node>
+
+    <node ID="Info">
+      <text>"I specialize in cybernetic implants and augmentations. I can convert your old or unwanted implants into credit wedges - a more liquid form of currency. My rates are fair: basic implants fetch 1 credit wedge, advanced ones 2 wedges, and the most sophisticated can earn you 3 wedges."</text>
+      <choice ID="Back" GotoID="Start" Text="I see. Let me consider my options." />
+    </node>
+
+    <node ID="End">
+      <text>The trader's augmented eyes dim slightly. "Safe travels, and remember - I'm always here if you need to liquidate your cybernetic assets."</text>
+    </node>
+  </conversation>
+</conversations>

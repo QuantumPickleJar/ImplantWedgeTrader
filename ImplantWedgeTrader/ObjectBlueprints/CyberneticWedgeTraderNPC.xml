@@ -9,16 +9,12 @@
     <part Name="Stats" Strength="18" Agility="16" Toughness="18" Intelligence="20" Willpower="16" Ego="18" />
     <part Name="Level" Level="15" />
     <part Name="Inventory" />
-    <part Name="Trade" />
     <part Name="CyberneticTrader" />
     <part Name="ConversationScript" ConversationID="CyberneticTrader" />
-    <part Name="ShopRestockTracker" />
 
     <inventoryobject Blueprint="Cloth Robe" Number="1" />
     <inventoryobject Blueprint="Boots" Number="1" />
-    <inventoryobject Blueprint="CreditWedge1" Number="15" />
-    <inventoryobject Blueprint="CreditWedge2" Number="5" />
-    <inventoryobject Blueprint="CreditWedge3" Number="2" />
+    <inventoryobject Blueprint="CreditWedge1" Number="10" />
 
     <tag Name="Merchant" />
     <tag Name="Humanoid" />

@@ -25,7 +25,40 @@ namespace CyberneticTraderMod
 
         public override bool FireEvent(QudEvent E)
         {
-            if (E.ID == "GetInteractionOptions")
+            // Handle conversation actions
+            if (E.ID == "ConversationAction")
+            {
+                var action = E.GetStringParameter("Action");
+                
+                if (action == "DoTrade")
+                {
+                    DoTrade();
+                    return true;
+                }
+                else if (action == "AppraiseItems")
+                {
+                    AppraiseItems();
+                    return true;
+                }
+            }
+            // Handle conversation choices (alternative event type)
+            else if (E.ID == "ConversationChoice")
+            {
+                var choice = E.GetStringParameter("Choice");
+                
+                if (choice == "PerformTrade")
+                {
+                    DoTrade();
+                    return true;
+                }
+                else if (choice == "PerformAppraise")
+                {
+                    AppraiseItems();
+                    return true;
+                }
+            }
+            // Legacy interaction support (remove if not needed)
+            else if (E.ID == "GetInteractionOptions")
             {
                 E.GetParameter<List<string>>("Options").Add("Trade Implants");
                 E.GetParameter<List<string>>("Options").Add("Appraise Items");
@@ -44,16 +77,6 @@ namespace CyberneticTraderMod
             else if (E.ID == "PerformInteraction" && E.GetParameter<string>("Option") == "Debug Inventory")
             {
                 DebugInventory();
-                return true;
-            }
-            else if (E.ID == "ConversationAction" && E.GetStringParameter("Action") == "DoTrade")
-            {
-                DoTrade();
-                return true;
-            }
-            else if (E.ID == "ConversationAction" && E.GetStringParameter("Action") == "AppraiseItems")
-            {
-                AppraiseItems();
                 return true;
             }
             return base.FireEvent(E);
