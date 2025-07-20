@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Map Width="80" Height="25" Load="Merge">
-  <cell X="40" Y="13">
-    <object Name="CyberneticWedgeTraderNPC" />
-  </cell>
-</Map>

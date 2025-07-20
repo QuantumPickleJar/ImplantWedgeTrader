@@ -4,8 +4,6 @@ using System.Linq;
 using XRL.Core;
 using XRL.World;
 using XRL.World.Parts;
-using XRL.World.Parts.Mutation;
-using XRL.UI;
 using XRL.Messages;
 using QudGO = XRL.World.GameObject;
 using QudEvent = XRL.World.Event;
@@ -17,87 +15,55 @@ namespace CyberneticTraderMod
     {
         public HashSet<string> RedeemedImplants = new HashSet<string>();
 
-        public static readonly Dictionary<string, int> TierValues = new()
-        {
-            {"Low", 1},
-            {"Mid", 2},
-            {"High", 3}
-        };
-
         public override bool FireEvent(QudEvent E)
         {
-            // Handle conversation actions
-            if (E.ID == "ConversationAction")
+            // Handle conversation events
+            if (E.ID == "ConversationInit")
             {
-                var action = E.GetStringParameter("Action");
-                
-                if (action == "DoTrade")
-                {
-                    DoTrade();
-                    return true;
-                }
-                else if (action == "AppraiseItems")
-                {
-                    AppraiseItems();
-                    return true;
-                }
-            }
-            // Handle conversation choices (alternative event type)
-            else if (E.ID == "ConversationChoice")
-            {
-                var choice = E.GetStringParameter("Choice");
-                
-                if (choice == "PerformTrade")
-                {
-                    DoTrade();
-                    return true;
-                }
-                else if (choice == "PerformAppraise")
-                {
-                    AppraiseItems();
-                    return true;
-                }
+                // Check what cybernetic implants the player has when conversation starts
+                CheckPlayerImplants();
+                return true;
             }
 
             return base.FireEvent(E);
         }
 
-        private void AppraiseItems()
+        private void CheckPlayerImplants()
         {
             var playerBody = XRLCore.Core.Game.Player.Body;
             var allItems = playerBody.Inventory.GetObjects();
             
-            MessageQueue.AddPlayerMessage("=== ITEM APPRAISAL ===");
+            MessageQueue.AddPlayerMessage("=== CYBERNETIC ANALYSIS ===");
             
             var valuableItems = allItems.Where(item => CalculateItemValue(item) > 0).ToList();
             
             if (valuableItems.Count == 0)
             {
-                MessageQueue.AddPlayerMessage("I don't see any items I'd be interested in trading for.");
+                MessageQueue.AddPlayerMessage("I don't see any cybernetic implants I'd be interested in trading for.");
                 return;
             }
             
             MessageQueue.AddPlayerMessage($"I can see {valuableItems.Count} items worth trading:");
             
-            foreach (var item in valuableItems.Take(10))
+            foreach (var item in valuableItems.Take(5))
             {
                 int value = CalculateItemValue(item);
                 string valueText = value > 1 ? $"{value} credit wedges" : "1 credit wedge";
                 MessageQueue.AddPlayerMessage($"• {item.DisplayName} - worth {valueText}");
             }
             
-            if (valuableItems.Count > 10)
+            if (valuableItems.Count > 5)
             {
-                MessageQueue.AddPlayerMessage($"... and {valuableItems.Count - 10} more items.");
+                MessageQueue.AddPlayerMessage($"... and {valuableItems.Count - 5} more items.");
             }
         }
 
-        private void DoTrade()
+        public void DoTrade()
         {
             var playerBody = XRLCore.Core.Game.Player.Body;
             var allItems = playerBody.Inventory.GetObjects();
             
-            MessageQueue.AddPlayerMessage("=== CYBERNETIC TRADER ===");
+            MessageQueue.AddPlayerMessage("=== PROCESSING TRADE ===");
             
             // Filter to items we're interested in
             var tradeableItems = allItems.Where(item => 
@@ -110,62 +76,15 @@ namespace CyberneticTraderMod
                 return;
             }
             
-            // Create a list of choices for the player
-            var choices = new List<string>();
-            for (int i = 0; i < tradeableItems.Count; i++)
-            {
-                var item = tradeableItems[i];
-                int value = CalculateItemValue(item);
-                string valueText = value > 1 ? $"{value} wedges" : "1 wedge";
-                choices.Add($"{item.DisplayName} ({valueText})");
-            }
-            choices.Add("Cancel");
-            
-            // Let player choose (building the choice string manually)
-            string choiceString = "";
-            for (int i = 0; i < choices.Count; i++)
-            {
-                choiceString += $"&{i + 1}){choices[i]}\n";
-            }
-            
-            int choice = Popup.PickOption("Choose an item to trade:", choiceString);
-            
-            if (choice < 0 || choice >= tradeableItems.Count)
-            {
-                MessageQueue.AddPlayerMessage("Trade cancelled.");
-                return;
-            }
-            
-            var selectedItem = tradeableItems[choice];
-            
-            // Skip items that were already traded
-            if (RedeemedImplants.Contains(selectedItem.Blueprint))
-            {
-                MessageQueue.AddPlayerMessage($"You have already traded {selectedItem.DisplayName}.");
-                return;
-            }
-            
-            // Calculate potential value for the selected item
+            // Simple trade - just trade the first available item for now
+            var selectedItem = tradeableItems[0];
             int tradeValue = CalculateItemValue(selectedItem);
             
-            if (tradeValue <= 0)
-            {
-                MessageQueue.AddPlayerMessage($"I'm not interested in {selectedItem.DisplayName}. I only trade for cybernetic implants and valuable equipment.");
-                return;
-            }
-            
-            // Confirm the trade using XRL.UI.Popup
-            if (Popup.ShowYesNo($"Trade {selectedItem.DisplayName} for {tradeValue} credit wedge{(tradeValue > 1 ? "s" : "")}?") == DialogResult.Yes)
-            {
-                AwardChips(tradeValue);
-                RedeemedImplants.Add(selectedItem.Blueprint);
-                selectedItem.Destroy();
-                MessageQueue.AddPlayerMessage($"You receive {tradeValue} credit wedge{(tradeValue > 1 ? "s" : "")} for {selectedItem.DisplayName}.");
-            }
-            else
-            {
-                MessageQueue.AddPlayerMessage("Trade cancelled.");
-            }
+            // Process the trade
+            AwardChips(tradeValue);
+            RedeemedImplants.Add(selectedItem.Blueprint);
+            selectedItem.Destroy();
+            MessageQueue.AddPlayerMessage($"You receive {tradeValue} credit wedge{(tradeValue > 1 ? "s" : "")} for {selectedItem.DisplayName}.");
         }
         
         private int CalculateItemValue(QudGO item)
@@ -334,63 +253,22 @@ namespace CyberneticTraderMod
             return false;
         }
 
-        private string DetermineTier(QudGO implant)
-        {
-            if (!IsCyberneticImplant(implant))
-                return "Low";
-
-            int complexity = 0;
-            
-            // Check tier property
-            if (implant.HasProperty("Tier"))
-            {
-                complexity += implant.GetIntProperty("Tier", 1);
-            }
-            
-            // Check license points
-            if (implant.HasProperty("LicensePoints"))
-            {
-                complexity += implant.GetIntProperty("LicensePoints", 0) / 2;
-            }
-            
-            // Check value
-            if (implant.HasProperty("Value"))
-            {
-                int value = implant.GetIntProperty("Value", 0);
-                if (value > 1000) complexity += 2;
-                else if (value > 500) complexity += 1;
-            }
-            
-            // Check rarity tags
-            if (implant.HasTag("Rare") || implant.HasTag("Unique") || implant.HasTag("Artifact"))
-                complexity += 2;
-            
-            // Check blueprint name for quality indicators
-            string blueprint = implant.Blueprint.ToLower();
-            if (blueprint.Contains("high") || blueprint.Contains("advanced") || 
-                blueprint.Contains("superior") || blueprint.Contains("master") ||
-                blueprint.Contains("legendary"))
-                complexity += 2;
-            else if (blueprint.Contains("med") || blueprint.Contains("standard") || 
-                     blueprint.Contains("improved"))
-                complexity += 1;
-
-            // Check for special implant types that should be higher tier
-            if (blueprint.Contains("night") || blueprint.Contains("thermal") ||
-                blueprint.Contains("telescopic") || blueprint.Contains("penetrating"))
-                complexity += 1;
-
-            if (complexity >= 6) return "High";
-            if (complexity >= 3) return "Mid";
-            return "Low";
-        }
-
         private void AwardChips(int chips)
         {
-            for (int i = 0; i < chips; i++)
+            try
             {
-                var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
-                XRLCore.Core.Game.Player.Body.TakeObject(wedge);
+                for (int i = 0; i < chips; i++)
+                {
+                    var wedge = GameObjectFactory.Factory.CreateObject("CreditWedge1");
+                    if (wedge != null)
+                    {
+                        XRLCore.Core.Game.Player.Body.TakeObject(wedge);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageQueue.AddPlayerMessage($"Error creating credit wedges: {ex.Message}");
             }
         }
     }

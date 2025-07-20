@@ -1,0 +1,3 @@
+<factions>
+  <faction Name="Merchants" Load="UseBase" />
+</factions>

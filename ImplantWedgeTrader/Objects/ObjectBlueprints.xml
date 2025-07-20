@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<objects>  <object Name="CreditWedge1" Inherits="BaseNugget">
+<objects>
+  <!-- Cybernetic Wedge Trader NPC -->
+<object Name="CyberneticWedgeTraderNPC" Inherits="BaseHumanoid">
+    <part Name="Render" DisplayName="cybernetic wedge trader" ColorString="&amp;C" DetailColor="M" />
+    <part Name="Description" Short="A cybernetic implant trader who deals in credit wedges." />
+    <part Name="ConversationScript" ConversationID="CyberneticTrader" />
+    
+    <!-- add these in the merged file: -->
+    <part Name="Brain" Hostile="false" Factions="Merchants" Wanders="false" />
+    <part Name="CyberneticTrader" />
+    <part Name="DebugLogger" />
+
+    <inventoryobject Blueprint="Robe" Number="1" />
+    <inventoryobject Blueprint="LeatherBoots" Number="1" />
+
+    <tag Name="Humanoid" />
+    <tag Name="Merchant" />
+    <tag Name="NoTeleport" />
+    <tag Name="ExcludeFromDynamicEncounters" />
+</object>
+  
+  <!-- Credit Wedges -->
+  <object Name="CreditWedge1" Inherits="BaseNugget">
     <part Name="Render" DisplayName="credit wedge" ColorString="&amp;Y" DetailColor="y" TileColor="&amp;Y" Tile="234" />
     <part Name="Description" Short="A small, triangular piece of crystallized credit. It gleams with a faint electronic pulse, indicating its stored value." />
     <part Name="Physics" Category="Misc" Weight="1" />
@@ -11,11 +33,13 @@
     <tag Name="Valuable" />
     <tag Name="CreditWedge" />
   </object>
+
   <object Name="CreditWedge2" Inherits="CreditWedge1">
     <part Name="Render" DisplayName="large credit wedge" ColorString="&amp;G" DetailColor="g" TileColor="&amp;G" />
     <part Name="Description" Short="A larger, more valuable credit wedge. Its surface shimmers with complex data patterns." />
     <part Name="Commerce" Value="150" />
   </object>
+
   <object Name="CreditWedge3" Inherits="CreditWedge1">
     <part Name="Render" DisplayName="premium credit wedge" ColorString="&amp;M" DetailColor="m" TileColor="&amp;M" />
     <part Name="Description" Short="A premium credit wedge of exceptional quality. Electronic patterns dance across its surface." />
