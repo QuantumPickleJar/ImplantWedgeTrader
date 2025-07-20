@@ -11,6 +11,10 @@ namespace XRL.World.Conversations.Parts
     [Serializable]
     public class CyberneticTradeHandler : IConversationPart
     {
+        public int Tier { get; set; } = 1;
+
+        public override bool WantEvent(int ID, int cascade) => ID == EnterElementEvent.ID;
+
         private static readonly Dictionary<string, int> ImplantValues = new Dictionary<string, int>
         {
             // Basic implants (1 credit wedge)
@@ -48,29 +52,52 @@ namespace XRL.World.Conversations.Parts
             { "Magnetic Pulse", 3 }
         };
 
-        public override bool WantEvent(int ID, int propagation)
+        
+        private List<GameObject> GatherImplants(GameObject player)
         {
-            return ID == EnterElementEvent.ID || base.WantEvent(ID, propagation);
+            var implants = new List<GameObject>();
+
+            // Search body parts for equipped implants
+            if (player.Body != null)
+            {
+                foreach (var bodyPart in player.Body.GetParts())
+                {
+                    var equipped = bodyPart.Equipped;
+                    if (equipped != null && IsCyberneticImplant(equipped))
+                    {
+                        implants.Add(equipped);
+                    }
+                }
+            }
+
+            // Search inventory for implants
+            if (player.Inventory != null)
+            {
+                foreach (var item in player.Inventory.GetObjects())
+                {
+                    if (IsCyberneticImplant(item))
+                        implants.Add(item);
+                }
+            }
+
+            return implants;
         }
+
+
 
         public override bool HandleEvent(EnterElementEvent E)
         {
             GameObject player = The.Player;
             if (player == null) return base.HandleEvent(E);
 
-            // Find all cybernetic implants on the player
-            List<GameObject> implants = new List<GameObject>();
-            
-            // Check body parts for cybernetic implants
-            if (player.Body != null)
+            var implants = GatherImplants(player)
+                .Where(i => GetImplantValue(i) == Tier)
+                .ToList();
+
+            if (implants.Count == 0)
             {
-                foreach (var bodyPart in player.Body.GetParts())
-                {
-                    if (bodyPart.Equipped != null && IsCyberneticImplant(bodyPart.Equipped))
-                    {
-                        implants.Add(bodyPart.Equipped);
-                    }
-                }
+                MessageQueue.AddPlayerMessage($"You have no implants of tier {Tier}.");
+                return true;
             }
 
             // Check inventory for cybernetic implants
