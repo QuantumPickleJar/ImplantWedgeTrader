@@ -1,5 +1,6 @@
 using System;
 using XRL.World;
+using XRL.World.Parts;
 
 namespace CyberneticTraderMod
 {
@@ -13,7 +14,7 @@ namespace CyberneticTraderMod
             {
                 // Find a suitable cell to place the NPC
                 Cell targetCell = null;
-                
+
                 // Look for an empty cell that's passable
                 for (int x = 0; x < 80; x++)
                 {
@@ -28,7 +29,7 @@ namespace CyberneticTraderMod
                     }
                     if (targetCell != null) break;
                 }
-                
+
                 if (targetCell != null)
                 {
                     // Create and place the NPC
@@ -39,13 +40,12 @@ namespace CyberneticTraderMod
                         return true;
                     }
                 }
-            }
-            catch (Exception ex)
+            }            catch (Exception ex)
             {
                 // Log the error but don't crash the game
-                UnityEngine.Debug.LogError($"CyberneticTraderInjector error: {ex.Message}");
+                Console.WriteLine($"CyberneticTraderInjector error: {ex.Message}");
             }
-            
+
             return true; // Return true to prevent zone generation failure
         }
     }
